@@ -8,7 +8,7 @@ from pln_model import PLNClassifier
 from inferencia import aplicar_inferencia
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)  # habilita CORS para todo
 
 reglas = obtener_reglas()
 clasificador = PLNClassifier()
@@ -27,8 +27,11 @@ def esta_preguntando_que_hace(texto):
         "qué haces", "que haces", "quién eres", "para qué sirves", "cuál es tu función"
     ])
 
-@app.route("/chat", methods=["POST"])
+@app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
+    if request.method == "OPTIONS":
+        return '', 200  # Responde a preflight
+
     global contexto, clasificador
     data = request.get_json()
     entrada = data.get("mensaje", "").strip().lower()
@@ -37,12 +40,12 @@ def chat():
         return jsonify(respuesta=contexto['respuesta']['explicacion'])
 
     if esta_preguntando_que_hace(entrada):
-        return jsonify(respuesta="\ud83e\udd16 Navi: Soy tu asistente gamer. Te recomiendo juegos seg\u00fan tus gustos y aprendo contigo. \u00a1Solo dime qu\u00e9 te interesa jugar!")
+        return jsonify(respuesta="🤖 Navi: Soy tu asistente gamer. Te recomiendo juegos según tus gustos y aprendo contigo. ¡Solo dime qué te interesa jugar!")
 
     inferencia = aplicar_inferencia(entrada, reglas)
     if inferencia:
-        contexto['respuesta'] = {"explicacion": "Basado en lo que dijiste, esta recomendaci\u00f3n te puede gustar."}
-        return jsonify(respuesta=f"{inferencia}")
+        contexto['respuesta'] = {"explicacion": "Basado en lo que dijiste, esta recomendación te puede gustar."}
+        return jsonify(respuesta=inferencia)
 
     etiqueta = clasificador.predecir(entrada)
     resultado = obtener_respuesta_por_etiqueta(etiqueta)
@@ -52,8 +55,7 @@ def chat():
         contexto['respuesta'] = {"etiqueta": etiqueta, "explicacion": explicacion}
         return jsonify(respuesta=texto)
 
-    # Aprendizaje en tiempo real
-    return jsonify(respuesta="Ups... no conozco ese tipo de juego todav\u00eda. \u00a1Pronto podr\u00e9 aprenderlo si me ense\u00f1as en consola! \ud83e\uddd0")
+    return jsonify(respuesta="Ups... no conozco ese tipo de juego todavía. ¡Pronto podré aprenderlo si me enseñas en consola! 🧠")
 
 if __name__ == "__main__":
     import os
