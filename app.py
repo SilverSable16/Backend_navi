@@ -8,7 +8,7 @@ from pln_model import PLNClassifier
 from inferencia import aplicar_inferencia
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)  # habilita CORS para todo
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 reglas = obtener_reglas()
 clasificador = PLNClassifier()
@@ -36,32 +36,44 @@ def home():
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
     if request.method == "OPTIONS":
-        return '', 200  # Responde a preflight
+        return '', 200
 
     global contexto, clasificador
     data = request.get_json()
     entrada = data.get("mensaje", "").strip().lower()
 
+    if entrada == "salir":
+        return jsonify(respuesta="🎮 Navi: ¡Hasta pronto, aventurero! Que encuentres un juego épico en tu camino. 👾🕹️")
+
     if esta_pidiendo_explicacion(entrada) and "respuesta" in contexto:
         return jsonify(respuesta=contexto['respuesta']['explicacion'])
 
     if esta_preguntando_que_hace(entrada):
-        return jsonify(respuesta="🤖 Navi: Soy tu asistente gamer. Te recomiendo juegos según tus gustos y aprendo contigo. ¡Solo dime qué te interesa jugar!")
+        return jsonify(respuesta=(
+            "🤖 Navi: ¡Estoy aquí para ayudarte a descubrir videojuegos increíbles! 🎯\n"
+            "Solo dime qué te gusta (por ejemplo, historia, aventuras, jugar con amigos...) y te recomendaré algo genial.\n"
+            "Y si no conozco algo, me puedes enseñar. ¡Estoy en constante aprendizaje, como tú! 💡"
+        ))
 
     inferencia = aplicar_inferencia(entrada, reglas)
     if inferencia:
-        contexto['respuesta'] = {"explicacion": "Basado en lo que dijiste, esta recomendación te puede gustar."}
-        return jsonify(respuesta=inferencia)
+        contexto['respuesta'] = {
+            "explicacion": "Esta recomendación se basa en lo que mencionaste. ¿Te interesa algo similar?"
+        }
+        return jsonify(respuesta=f"🎯 Navi (regla): {inferencia}")
 
     etiqueta = clasificador.predecir(entrada)
     resultado = obtener_respuesta_por_etiqueta(etiqueta)
 
     if resultado:
         texto, explicacion = resultado
-        contexto['respuesta'] = {"etiqueta": etiqueta, "explicacion": explicacion}
-        return jsonify(respuesta=texto)
-
-    return jsonify(respuesta="Ups... no conozco ese tipo de juego todavía. ¡Pronto podré aprenderlo si me enseñas en consola! 🧠")
+        contexto['respuesta'] = {
+            "etiqueta": etiqueta,
+            "explicacion": explicacion
+        }
+        return jsonify(respuesta=f"🎮 Navi (PLN): {texto}")
+    else:
+        return jsonify(respuesta="🤖 Navi: Hmm... eso no lo conozco aún. Pero no te preocupes, ¡puedo aprenderlo si me enseñas! 😄")
 
 if __name__ == "__main__":
     import os
