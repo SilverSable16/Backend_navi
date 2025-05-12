@@ -56,4 +56,7 @@ def chat():
     return jsonify(respuesta="Ups... no conozco ese tipo de juego todav\u00eda. \u00a1Pronto podr\u00e9 aprenderlo si me ense\u00f1as en consola! \ud83e\uddd0")
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
