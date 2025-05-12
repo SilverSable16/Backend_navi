@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: navi-backend
+    env: python
+    buildCommand: ""
+    startCommand: "python app.py"
+    plan: free
+    region: oregon
+    runtime: python
+    envVars:
+      - key: DB_HOST
+        value: dpg-d0e3qsgdl3ps73ban35g-a.oregon-postgres.render.com
+      - key: DB_NAME
+        value: capibaras_1ag6
+      - key: DB_USER
+        value: silverhand
+      - key: DB_PASSWORD
+        value: 1UbYZslGMUm7JZfOw4aolZ4NGjRxxFlu
