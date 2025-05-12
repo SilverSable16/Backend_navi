@@ -27,6 +27,12 @@ def esta_preguntando_que_hace(texto):
         "qué haces", "que haces", "quién eres", "para qué sirves", "cuál es tu función"
     ])
 
+@app.route("/", methods=["GET", "OPTIONS"])
+def home():
+    if request.method == "OPTIONS":
+        return '', 200
+    return "<h1>Navi backend funcionando 🧠🎮</h1>"
+
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
     if request.method == "OPTIONS":
