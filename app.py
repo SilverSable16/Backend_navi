@@ -27,12 +27,6 @@ def esta_preguntando_que_hace(texto):
         "qué haces", "que haces", "quién eres", "para qué sirves", "cuál es tu función"
     ])
 
-@app.route("/", methods=["GET", "OPTIONS"])
-def home():
-    if request.method == "OPTIONS":
-        return '', 200
-    return "<h1>Navi backend funcionando 🧠🎮</h1>"
-
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
     if request.method == "OPTIONS":
@@ -103,32 +97,33 @@ def chat():
         return jsonify(respuesta="🤖 Navi: Hmm... eso no lo conozco aún. Pero no te preocupes, ¡puedo aprenderlo si me enseñas! 😄\n"
                                  "Por favor, dime el nombre de una categoría de juego para este tipo.\n"
                                  "Ejemplo: 'aventuras' o 'estrategia'.")
-        
-        # Después de que el usuario proporcione una categoría, capturamos la nueva respuesta
-        nueva_etiqueta = input("👤 Tú (tema o etiqueta): ").strip().lower()
 
-        # Crear o encontrar la nueva etiqueta para la categoría
-        intencion_id = obtener_id_intencion(nueva_etiqueta)
-        if not intencion_id:
-            intencion_id = crear_intencion(nueva_etiqueta)
+# Recibir y guardar la nueva etiqueta y respuesta en la base de datos
+@app.route("/learn", methods=["POST"])
+def learn():
+    data = request.get_json()
+    categoria = data.get("categoria", "").strip().lower()
+    juego = data.get("juego", "").strip()
+    explicacion = data.get("explicacion", "").strip()
 
-        # Preguntar al usuario por un ejemplo de juego relacionado con esa categoría
-        nueva_respuesta = input("👤 Tú (nombre del juego): ").strip()
-        print("🤖 Navi: ¡Genial! Ahora, ¿por qué recomendarías ese juego?")
-        explicacion = input("👤 Tú (explicación): ").strip()
+    # Crear o buscar la nueva categoría
+    intencion_id = obtener_id_intencion(categoria)
+    if not intencion_id:
+        intencion_id = crear_intencion(categoria)
 
-        # Guardar el nuevo ejemplo en la base de datos
-        insertar_ejemplo(entrada, intencion_id)
-        insertar_respuesta(intencion_id, nueva_respuesta, explicacion)
+    # Guardar el nuevo ejemplo y respuesta
+    insertar_ejemplo(categoria, intencion_id)
+    insertar_respuesta(intencion_id, juego, explicacion)
 
-        # Reentrenar el modelo para aprender el nuevo juego
-        clasificador = cargar_modelo()
+    # Reentrenar el modelo con los nuevos datos
+    clasificador = cargar_modelo()
 
-        return jsonify(respuesta="🤖 Navi: ¡Eso suena genial! 😮 No lo sabía, pero ya lo anoté.\n"
-                                 "¡Gracias por enseñarme algo nuevo! La próxima vez estaré más preparada 🎓🎮")
+    return jsonify(respuesta=f"🤖 Navi: ¡Eso suena genial! 😮 No lo sabía, pero ya lo anoté.\n"
+                             "¡Gracias por enseñarme algo nuevo! La próxima vez estaré más preparada 🎓🎮")
 
 if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
