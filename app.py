@@ -50,6 +50,13 @@ def chat():
     if "cómo estás" in entrada or "como estas" in entrada:
         return jsonify(respuesta="🎮 ¡Estoy genial! Siempre listo para ayudarte a encontrar juegos épicos. ¿Y tú, cómo te sientes hoy?")
 
+    # Responder según el estado de ánimo del usuario
+    if "estoy feliz" in entrada or "estoy bien" in entrada:
+        return jsonify(respuesta="🎮 ¡Qué bueno escuchar eso! Estoy seguro de que te encantará la recomendación de juegos que te tengo. ¡Vamos a por más diversión! 😄")
+
+    if "estoy triste" in entrada or "no me siento bien" in entrada:
+        return jsonify(respuesta="🎮 Lo siento mucho. 😞 Pero no te preocupes, a veces una buena partida puede levantar el ánimo. ¿Qué tipo de juego te gustaría jugar para relajarte? 🎮")
+
     # Respuesta a "Adiós" o "Adios"
     if "adiós" in entrada or "adios" in entrada:
         return jsonify(respuesta="🎮 ¡Hasta pronto! Que encuentres un juego épico en tu camino. ¡Nos vemos en la próxima aventura!")
@@ -96,5 +103,4 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
 
