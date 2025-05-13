@@ -36,12 +36,29 @@ def home():
 @app.route("/chat", methods=["POST", "OPTIONS"])
 def chat():
     if request.method == "OPTIONS":
-        return '', 200
+        return '', 200  # Responde a preflight
 
     global contexto, clasificador
     data = request.get_json()
     entrada = data.get("mensaje", "").strip().lower()
 
+    # Respuesta a "Hola" o "Que tal"
+    if "hola" in entrada or "que tal" in entrada:
+        return jsonify(respuesta="🎮 ¡Hola, aventurero! Soy Navi, tu asistente gamer. ¿Qué tipo de juegos te gustan?")
+
+    # Respuesta a "¿Cómo estás?" o "Como estas"
+    if "cómo estás" in entrada or "como estas" in entrada:
+        return jsonify(respuesta="🎮 ¡Estoy genial! Siempre listo para ayudarte a encontrar juegos épicos. ¿Y tú, cómo te sientes hoy?")
+
+    # Respuesta a "Adiós" o "Adios"
+    if "adiós" in entrada or "adios" in entrada:
+        return jsonify(respuesta="🎮 ¡Hasta pronto! Que encuentres un juego épico en tu camino. ¡Nos vemos en la próxima aventura!")
+
+    # Respuesta a "Hasta pronto"
+    if "hasta pronto" in entrada:
+        return jsonify(respuesta="🎮 ¡Hasta pronto! Que encuentres un juego épico en tu camino. ¡Nos vemos en la próxima aventura!")
+
+    # Si el usuario escribe "salir"
     if entrada == "salir":
         return jsonify(respuesta="🎮 Navi: ¡Hasta pronto, aventurero! Que encuentres un juego épico en tu camino. 👾🕹️")
 
@@ -49,7 +66,7 @@ def chat():
         return jsonify(respuesta=contexto['respuesta']['explicacion'])
 
     if esta_preguntando_que_hace(entrada):
-        return jsonify(respuesta=(
+        return jsonify(respuesta=( 
             "🤖 Navi: ¡Estoy aquí para ayudarte a descubrir videojuegos increíbles! 🎯\n"
             "Solo dime qué te gusta (por ejemplo, historia, aventuras, jugar con amigos...) y te recomendaré algo genial.\n"
             "Y si no conozco algo, me puedes enseñar. ¡Estoy en constante aprendizaje, como tú! 💡"
@@ -79,4 +96,5 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
