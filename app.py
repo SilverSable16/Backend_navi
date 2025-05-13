@@ -126,3 +126,9 @@ def chat():
 
         return jsonify(respuesta="🤖 Navi: ¡Eso suena genial! 😮 No lo sabía, pero ya lo anoté.\n"
                                  "¡Gracias por enseñarme algo nuevo! La próxima vez estaré más preparada 🎓🎮")
+
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
