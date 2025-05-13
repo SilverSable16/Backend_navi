@@ -79,6 +79,7 @@ def chat():
             "Y si no conozco algo, me puedes enseñar. ¡Estoy en constante aprendizaje, como tú! 💡"
         ))
 
+    # Lógica de Inferencia (Si ya tiene un conocimiento previo)
     inferencia = aplicar_inferencia(entrada, reglas)
     if inferencia:
         contexto['respuesta'] = {
@@ -86,6 +87,7 @@ def chat():
         }
         return jsonify(respuesta=f"🎯 Navi (regla): {inferencia}")
 
+    # Lógica PLN - Si no encuentra respuesta, activar autoaprendizaje
     etiqueta = clasificador.predecir(entrada)
     resultado = obtener_respuesta_por_etiqueta(etiqueta)
 
@@ -97,10 +99,30 @@ def chat():
         }
         return jsonify(respuesta=f"🎮 Navi (PLN): {texto}")
     else:
-        return jsonify(respuesta="🤖 Navi: Hmm... eso no lo conozco aún. Pero no te preocupes, ¡puedo aprenderlo si me enseñas! 😄")
+        # Autoaprendizaje: Preguntar al usuario por la nueva categoría y recomendación
+        return jsonify(respuesta="🤖 Navi: Hmm... eso no lo conozco aún. Pero no te preocupes, ¡puedo aprenderlo si me enseñas! 😄\n"
+                                 "Por favor, dime el nombre de una categoría de juego para este tipo.\n"
+                                 "Ejemplo: 'aventuras' o 'estrategia'.")
+        
+        # Después de que el usuario proporcione una categoría, capturamos la nueva respuesta
+        nueva_etiqueta = input("👤 Tú (tema o etiqueta): ").strip().lower()
 
-if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+        # Crear o encontrar la nueva etiqueta para la categoría
+        intencion_id = obtener_id_intencion(nueva_etiqueta)
+        if not intencion_id:
+            intencion_id = crear_intencion(nueva_etiqueta)
 
+        # Preguntar al usuario por un ejemplo de juego relacionado con esa categoría
+        nueva_respuesta = input("👤 Tú (nombre del juego): ").strip()
+        print("🤖 Navi: ¡Genial! Ahora, ¿por qué recomendarías ese juego?")
+        explicacion = input("👤 Tú (explicación): ").strip()
+
+        # Guardar el nuevo ejemplo en la base de datos
+        insertar_ejemplo(entrada, intencion_id)
+        insertar_respuesta(intencion_id, nueva_respuesta, explicacion)
+
+        # Reentrenar el modelo para aprender el nuevo juego
+        clasificador = cargar_modelo()
+
+        return jsonify(respuesta="🤖 Navi: ¡Eso suena genial! 😮 No lo sabía, pero ya lo anoté.\n"
+                                 "¡Gracias por enseñarme algo nuevo! La próxima vez estaré más preparada 🎓🎮")
